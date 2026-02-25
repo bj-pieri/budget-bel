@@ -12,7 +12,6 @@
            1. DESIGN SYSTEM (Inspirado no shadcn/ui)
            ========================================= */
         :root {
-            /* Tema Claro (Zinc base) */
             --background: 0 0% 100%;
             --foreground: 240 10% 3.9%;
             --card: 0 0% 100%;
@@ -35,12 +34,10 @@
             --input: 240 5.9% 90%;
             --ring: 240 5.9% 10%;
             --radius: 0.5rem;
-            
             --transition: all 0.2s ease;
         }
 
         [data-theme="dark"] {
-            /* Tema Escuro */
             --background: 240 10% 3.9%;
             --foreground: 0 0% 98%;
             --card: 240 10% 3.9%;
@@ -69,7 +66,6 @@
             padding: 0;
             box-sizing: border-box;
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
-            /* Garante que os números se alinhem verticalmente perfeitamente em finanças */
             font-variant-numeric: tabular-nums; 
         }
 
@@ -121,7 +117,7 @@
         }
 
         /* =========================================
-           3. CARDS (Componente principal)
+           3. CARDS E COMPONENTES
            ========================================= */
         .card {
             background-color: hsl(var(--card));
@@ -131,6 +127,7 @@
             box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
             display: flex;
             flex-direction: column;
+            transition: box-shadow var(--transition);
         }
 
         .card-header { padding: 1.5rem; padding-bottom: 1rem; }
@@ -147,7 +144,6 @@
         }
         .card-content { padding: 1.5rem; padding-top: 0; flex-grow: 1; }
 
-        /* Card Destaque (Totais) */
         .card-featured {
             background-color: hsl(var(--secondary) / 0.3);
             border: 2px solid hsl(var(--primary) / 0.15);
@@ -186,31 +182,12 @@
             box-shadow: 0 0 0 1px hsl(var(--background)), 0 0 0 3px hsl(var(--ring));
         }
         
-        /* Ocultar setas apenas de inputs numéricos específicos (classe no-spin) */
         input[type="number"].no-spin::-webkit-outer-spin-button,
         input[type="number"].no-spin::-webkit-inner-spin-button {
             -webkit-appearance: none;
             margin: 0;
         }
-        input[type="number"].no-spin {
-            -moz-appearance: textfield;
-        }
-
-        input[type="file"] {
-            padding: 0.4rem 0.75rem;
-            cursor: pointer;
-        }
-        input[type="file"]::file-selector-button {
-            border: 0;
-            background: hsl(var(--secondary));
-            color: hsl(var(--secondary-foreground));
-            padding: 0.2rem 0.6rem;
-            border-radius: 4px;
-            margin-right: 0.8rem;
-            font-size: 0.75rem;
-            font-weight: 500;
-            cursor: pointer;
-        }
+        input[type="number"].no-spin { -moz-appearance: textfield; }
 
         /* =========================================
            5. BUTTONS
@@ -231,187 +208,138 @@
             transition: var(--transition);
         }
 
-        .btn:focus-visible {
-            outline: none;
-            box-shadow: 0 0 0 1px hsl(var(--background)), 0 0 0 3px hsl(var(--ring));
-        }
-
-        .btn-primary {
-            background-color: hsl(var(--primary));
-            color: hsl(var(--primary-foreground));
-        }
+        .btn:focus-visible { outline: none; box-shadow: 0 0 0 1px hsl(var(--background)), 0 0 0 3px hsl(var(--ring)); }
+        .btn-primary { background-color: hsl(var(--primary)); color: hsl(var(--primary-foreground)); }
         .btn-primary:hover { opacity: 0.9; }
-
-        .btn-secondary {
-            background-color: hsl(var(--secondary));
-            color: hsl(var(--secondary-foreground));
-        }
+        .btn-secondary { background-color: hsl(var(--secondary)); color: hsl(var(--secondary-foreground)); }
         .btn-secondary:hover { background-color: hsl(var(--secondary) / 0.8); }
-
-        .btn-outline {
-            background-color: transparent;
-            border: 1px solid hsl(var(--input));
-            color: hsl(var(--foreground));
-        }
-        .btn-outline:hover {
-            background-color: hsl(var(--accent));
-            color: hsl(var(--accent-foreground));
-        }
-
-        .btn-destructive {
-            background-color: hsl(var(--destructive));
-            color: hsl(var(--destructive-foreground));
-        }
-        .btn-destructive:hover { opacity: 0.9; }
-
-        .btn-ai {
-            background: linear-gradient(135deg, #6366f1, #a855f7, #ec4899);
-            color: white;
-            border: none;
-            font-weight: 600;
-            box-shadow: 0 4px 6px -1px rgba(99, 102, 241, 0.2), 0 2px 4px -1px rgba(99, 102, 241, 0.1);
-        }
-        .btn-ai:hover { 
-            opacity: 0.9; 
-            transform: translateY(-1px);
-            box-shadow: 0 6px 8px -1px rgba(99, 102, 241, 0.3), 0 4px 6px -1px rgba(99, 102, 241, 0.2);
-        }
-        .btn-ai:active { transform: translateY(0); }
-        .btn-ai:disabled {
-            opacity: 0.7;
-            cursor: not-allowed;
-            transform: none;
-        }
-
-        .btn-icon {
-            padding: 0;
-            width: 2.5rem;
-            height: 2.5rem;
-            background: transparent;
-            color: hsl(var(--foreground));
-            border-radius: var(--radius);
-        }
-        .btn-icon:hover {
-            background-color: hsl(var(--accent));
-            color: hsl(var(--accent-foreground));
-        }
-
+        .btn-outline { background-color: transparent; border: 1px solid hsl(var(--input)); color: hsl(var(--foreground)); }
+        .btn-outline:hover { background-color: hsl(var(--accent)); color: hsl(var(--accent-foreground)); }
+        .btn-icon { padding: 0; width: 2.5rem; height: 2.5rem; background: transparent; color: hsl(var(--foreground)); border-radius: var(--radius); }
+        .btn-icon:hover { background-color: hsl(var(--accent)); color: hsl(var(--accent-foreground)); }
         .btn-sm { height: 2rem; padding: 0 0.75rem; font-size: 0.75rem; }
 
         /* =========================================
-           6. TABLE (Data Grid)
+           6. TABLE & MODAL DE LISTAGEM
            ========================================= */
         .table-container {
             position: relative;
             width: 100%;
-            overflow: auto;
+            max-height: 400px; /* Mantém a altura fixa */
+            overflow-y: auto;
+            overflow-x: auto;
         }
+
+        /* Estilização sutil da barra de rolagem */
+        .table-container::-webkit-scrollbar { width: 8px; height: 8px; }
+        .table-container::-webkit-scrollbar-track { background: transparent; }
+        .table-container::-webkit-scrollbar-thumb { background: hsl(var(--muted-foreground) / 0.3); border-radius: 4px; }
+
         table {
             width: 100%;
-            caption-side: bottom;
-            font-size: 0.875rem;
+            min-width: 700px; /* Evita o esmagamento em telas menores */
+            table-layout: fixed; /* Layout FIXO não sofre jitter quando números mudam */
             border-collapse: collapse;
         }
+        
+        /* Largura fixa inteligente para as colunas */
+        th:nth-child(1) { width: 35%; } /* Produto */
+        th:nth-child(2) { width: 10%; } /* Qtd */
+        th:nth-child(3) { width: 18%; } /* Preço Unit. */
+        th:nth-child(4) { width: 15%; } /* Ajuste (%) */
+        th:nth-child(5) { width: 15%; } /* Subtotal */
+        th:nth-child(6) { width:  7%; text-align: right; } /* Ações */
+
         th {
             height: 3rem;
-            padding: 0 1rem;
+            padding: 0 0.5rem;
             text-align: left;
             vertical-align: middle;
             font-weight: 500;
             color: hsl(var(--muted-foreground));
             border-bottom: 1px solid hsl(var(--border));
+            font-size: 0.875rem;
         }
         td {
-            padding: 1rem;
+            padding: 0.75rem 0.5rem;
             vertical-align: middle;
             border-bottom: 1px solid hsl(var(--border));
+            word-wrap: break-word;
         }
         tr:hover td { background-color: hsl(var(--muted) / 0.5); }
         tr:last-child td { border-bottom: 0; }
 
         .price-up { color: hsl(var(--destructive)); font-weight: 600; }
         .price-down { color: hsl(var(--success)); font-weight: 600; }
+        .empty-state { text-align: center; padding: 3rem 1rem; color: hsl(var(--muted-foreground)); font-size: 0.875rem; }
 
-        .empty-state {
-            text-align: center;
-            padding: 3rem 1rem;
-            color: hsl(var(--muted-foreground));
-            font-size: 0.875rem;
+        /* BACKDROP PARA MODAL */
+        .backdrop {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: hsl(var(--background) / 0.8);
+            backdrop-filter: blur(4px);
+            z-index: 40;
+            opacity: 0;
+            pointer-events: none;
+            transition: var(--transition);
+        }
+        .backdrop.show { opacity: 1; pointer-events: auto; }
+
+        /* CLASSE MODAL: Transforma o Card em um Modal fullscreen */
+        .card.expanded-modal {
+            position: fixed;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            width: 95vw;
+            max-width: 1200px;
+            height: 90vh;
+            z-index: 50;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            margin-bottom: 0 !important;
+        }
+        .card.expanded-modal .card-content {
+            display: flex; flex-direction: column;
+            overflow: hidden; padding-bottom: 0;
+        }
+        .card.expanded-modal .table-container {
+            max-height: none; flex-grow: 1; margin-bottom: 1.5rem;
         }
 
         /* =========================================
            7. COMPONENTES EXTRAS
            ========================================= */
         .flex-row { display: flex; gap: 0.5rem; align-items: center; }
-        
         .output-box {
-            width: 100%;
-            height: 160px;
-            padding: 0.75rem;
-            background-color: transparent;
-            border: 1px solid hsl(var(--input));
-            border-radius: calc(var(--radius) - 2px);
-            color: hsl(var(--foreground));
-            resize: vertical;
-            font-family: 'Inter', monospace;
-            font-size: 0.875rem;
-            line-height: 1.5;
+            width: 100%; height: 160px; padding: 0.75rem;
+            background-color: transparent; border: 1px solid hsl(var(--input));
+            border-radius: calc(var(--radius) - 2px); color: hsl(var(--foreground));
+            resize: vertical; font-family: 'Inter', monospace; font-size: 0.875rem;
             transition: border-color var(--transition);
         }
-        .output-box:focus-visible {
-            outline: none;
-            border-color: hsl(var(--ring));
-            box-shadow: 0 0 0 1px hsl(var(--background)), 0 0 0 3px hsl(var(--ring));
-        }
+        .output-box:focus-visible { outline: none; border-color: hsl(var(--ring)); box-shadow: 0 0 0 1px hsl(var(--background)), 0 0 0 3px hsl(var(--ring)); }
+        
+        .total-row { display: flex; justify-content: space-between; align-items: center; font-size: 1rem; padding: 0.5rem 0; }
+        .total-row.highlight { font-size: 1.5rem; font-weight: 700; border-top: 1px solid hsl(var(--border)); padding-top: 1rem; margin-top: 0.5rem; }
 
-        .total-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-size: 1rem;
-            padding: 0.5rem 0;
-        }
-        .total-row.highlight {
-            font-size: 1.5rem;
-            font-weight: 700;
-            border-top: 1px solid hsl(var(--border));
-            padding-top: 1rem;
-            margin-top: 0.5rem;
-        }
-
-        /* Toast moderno */
         .toast {
-            position: fixed;
-            bottom: 2rem;
-            right: 2rem;
-            background-color: hsl(var(--background));
-            color: hsl(var(--foreground));
-            border: 1px solid hsl(var(--border));
-            padding: 1rem 1.5rem;
-            border-radius: var(--radius);
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            font-size: 0.875rem;
-            font-weight: 500;
-            transform: translateY(100px);
-            opacity: 0;
-            pointer-events: none;
-            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-            z-index: 50;
+            position: fixed; bottom: 2rem; right: 2rem;
+            background-color: hsl(var(--background)); color: hsl(var(--foreground));
+            border: 1px solid hsl(var(--border)); padding: 1rem 1.5rem;
+            border-radius: var(--radius); display: flex; align-items: center; gap: 0.75rem;
+            font-size: 0.875rem; font-weight: 500; transform: translateY(100px);
+            opacity: 0; pointer-events: none; transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            z-index: 100; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
         }
-        .toast.show {
-            transform: translateY(0);
-            opacity: 1;
-        }
+        .toast.show { transform: translateY(0); opacity: 1; }
         .toast svg { color: hsl(var(--success)); }
-
-        /* Icon SVG util */
         .icon { width: 1.1rem; height: 1.1rem; stroke-width: 2; }
     </style>
 </head>
 <body>
+
+    <div id="backdrop" class="backdrop"></div>
 
     <div class="container">
         <!-- Cabeçalho -->
@@ -420,40 +348,38 @@
                 <svg class="icon" style="width:1.5rem; height:1.5rem" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"/><path d="M3 5v14a2 2 0 0 0 2 2h16v-5"/><path d="M18 12a2 2 0 0 0 0 4h4v-4Z"/></svg>
                 Orçamentos
             </h1>
-            <button class="btn btn-icon" id="btnThemeToggle" title="Alternar Tema">
-                <!-- Ícone trocado via JS -->
-                <svg id="icon-sun" class="icon" style="display:none;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>
-                <svg id="icon-moon" class="icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
-            </button>
+            <div class="flex-row">
+                <!-- Botão de Limpar Tudo -->
+                <button class="btn btn-outline btn-sm" id="btnClearAll" title="Zerar todos os dados do orçamento" style="color: hsl(var(--destructive)); border-color: hsl(var(--destructive) / 0.3);">
+                    <svg class="icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+                    Limpar Tudo
+                </button>
+
+                <!-- Toggle de Tema -->
+                <button class="btn btn-icon" id="btnThemeToggle" title="Alternar Tema">
+                    <svg id="icon-sun" class="icon" style="display:none;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>
+                    <svg id="icon-moon" class="icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
+                </button>
+            </div>
         </header>
 
         <!-- Seção de Entrada de Dados -->
         <div class="grid-2">
-            <!-- Upload Imagem/TXT & IA -->
+            <!-- Colar Texto do Orçamento -->
             <div class="card">
                 <div class="card-header">
                     <h2 class="card-title">Importar Dados</h2>
-                    <p class="card-description">Selecione uma <strong>imagem (print)</strong> do seu orçamento, cole a imagem com <kbd>Ctrl+V</kbd> ou cole o texto.</p>
+                    <p class="card-description">Cole o <strong>texto do orçamento</strong> abaixo para extrair os produtos.</p>
                 </div>
                 <div class="card-content space-y">
                     <div class="space-y-sm">
-                        <label for="fileInput" style="font-size: 0.75rem; color: hsl(var(--muted-foreground));">Anexar Imagem (Print)</label>
-                        <input type="file" id="fileInput" class="input" accept="image/*">
-                    </div>
-                    <div class="space-y-sm">
-                        <label for="pasteArea" style="font-size: 0.75rem; color: hsl(var(--muted-foreground));">Ou Colar Texto</label>
-                        <textarea id="pasteArea" class="input" style="height: 4rem; resize: vertical;" placeholder="Cole o conteúdo do orçamento aqui..."></textarea>
+                        <textarea id="pasteArea" class="input" style="height: 6rem; resize: vertical;" placeholder="Cole o conteúdo do orçamento aqui..."></textarea>
                     </div>
                     
-                    <div style="display: flex; gap: 0.5rem; margin-top: 0.5rem;">
-                        <button class="btn btn-secondary" id="btnExtractText" style="flex: 1;" title="Tenta extrair texto colado por regras básicas">
-                            Extração Comum
-                        </button>
-                        <button class="btn btn-ai" id="btnExtractAI" style="flex: 2;">
-                            <svg class="icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/><path d="M5 3v4"/><path d="M19 17v4"/><path d="M3 5h4"/><path d="M17 19h4"/></svg>
-                            Ler com IA (Gemini)
-                        </button>
-                    </div>
+                    <button class="btn btn-secondary" id="btnExtractText" style="width: 100%; margin-top: 0.5rem;" title="Extrair texto colado">
+                        <svg class="icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3v4a1 1 0 0 0 1 1h4"/><path d="M17 21H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7l5 5v11a2 2 0 0 1-2 2Z"/><path d="M9 9h1"/><path d="M9 13h6"/><path d="M9 17h6"/></svg>
+                        Extrair Produtos
+                    </button>
                 </div>
             </div>
 
@@ -486,40 +412,47 @@
             </div>
         </div>
 
-        <!-- Tabela de Produtos -->
-        <div class="card" style="margin-bottom: 1.5rem;">
+        <!-- Tabela de Produtos (Pode virar Modal) -->
+        <div class="card" id="listCard" style="margin-bottom: 1.5rem;">
             <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
                 <div>
                     <h2 class="card-title">Lista de Itens</h2>
                     <p class="card-description">Gerencie as margens de lucro ou descontos individualmente.</p>
                 </div>
-                <!-- Controle Global embutido no header da tabela -->
+                
                 <div class="flex-row">
+                    <!-- Controle Global -->
                     <input type="number" id="globalPercent" class="input" style="width: 120px; height: 2rem;" placeholder="% Global" step="0.1">
-                    <button class="btn btn-outline btn-sm" id="btnApplyGlobal">Aplicar a todos</button>
+                    <button class="btn btn-outline btn-sm" id="btnApplyGlobal">Aplicar</button>
+                    <!-- Lupa / Expandir -->
+                    <button class="btn btn-secondary btn-sm" id="btnToggleExpand" title="Expandir lista em tela cheia" style="padding: 0 0.5rem; margin-left: 0.5rem;">
+                        <svg id="icon-expand" class="icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/><path d="M11 8v6"/><path d="M8 11h6"/></svg>
+                        <svg id="icon-collapse" class="icon" style="display:none;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+                    </button>
                 </div>
             </div>
             
-            <div class="table-container">
-                <table>
-                    <thead>
-                        <tr>
-                            <th style="min-width: 180px;">Produto</th>
-                            <th style="width: 90px;">Qtd</th>
-                            <!-- Aumentamos a largura desta coluna para 160px -->
-                            <th style="width: 160px;">Preço Unit.</th>
-                            <th style="width: 110px;">Ajuste (%)</th>
-                            <th>Subtotal</th>
-                            <th style="width: 80px; text-align: right;">Ações</th>
-                        </tr>
-                    </thead>
-                    <tbody id="tableBody">
-                        <!-- Linhas dinâmicas -->
-                    </tbody>
-                </table>
-                <div id="emptyState" class="empty-state">
-                    <svg class="icon" style="width:3rem; height:3rem; margin:0 auto 1rem; color:hsl(var(--muted-foreground)); opacity:0.5;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"/><path d="M3 5v14a2 2 0 0 0 2 2h16v-5"/><path d="M18 12a2 2 0 0 0 0 4h4v-4Z"/><line x1="9" x2="15" y1="12" y2="12"/><line x1="9" x2="15" y1="16" y2="16"/></svg>
-                    Nenhum produto listado no momento.
+            <div class="card-content">
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Produto</th>
+                                <th>Qtd</th>
+                                <th>Preço Unit.</th>
+                                <th>Ajuste (%)</th>
+                                <th>Subtotal</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableBody">
+                            <!-- Linhas dinâmicas -->
+                        </tbody>
+                    </table>
+                    <div id="emptyState" class="empty-state">
+                        <svg class="icon" style="width:3rem; height:3rem; margin:0 auto 1rem; color:hsl(var(--muted-foreground)); opacity:0.5;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"/><path d="M3 5v14a2 2 0 0 0 2 2h16v-5"/><path d="M18 12a2 2 0 0 0 0 4h4v-4Z"/><line x1="9" x2="15" y1="12" y2="12"/><line x1="9" x2="15" y1="16" y2="16"/></svg>
+                        Nenhum produto listado no momento.
+                    </div>
                 </div>
             </div>
         </div>
@@ -570,9 +503,6 @@
          JAVASCRIPT
          ========================================= -->
     <script>
-        // API do Gemini (Chave injetada nativamente pelo ambiente)
-        const apiKey = "";
-
         // --- Estado ---
         let products = [];
         let nextId = 1;
@@ -582,16 +512,22 @@
             themeToggle: document.getElementById('btnThemeToggle'),
             iconSun: document.getElementById('icon-sun'),
             iconMoon: document.getElementById('icon-moon'),
-            fileInput: document.getElementById('fileInput'),
             pasteArea: document.getElementById('pasteArea'),
             btnExtractText: document.getElementById('btnExtractText'),
-            btnExtractAI: document.getElementById('btnExtractAI'),
             productName: document.getElementById('productName'),
             productQuantity: document.getElementById('productQuantity'),
             productPrice: document.getElementById('productPrice'),
             btnAddProduct: document.getElementById('btnAddProduct'),
             globalPercent: document.getElementById('globalPercent'),
             btnApplyGlobal: document.getElementById('btnApplyGlobal'),
+            btnClearAll: document.getElementById('btnClearAll'),
+            
+            listCard: document.getElementById('listCard'),
+            btnToggleExpand: document.getElementById('btnToggleExpand'),
+            iconExpand: document.getElementById('icon-expand'),
+            iconCollapse: document.getElementById('icon-collapse'),
+            backdrop: document.getElementById('backdrop'),
+
             tableBody: document.getElementById('tableBody'),
             emptyState: document.getElementById('emptyState'),
             txtOriginalTotal: document.getElementById('txtOriginalTotal'),
@@ -741,128 +677,45 @@
             dom.outputArea.value = text;
         };
 
-        // --- Permitir colar imagem com CTRL+V ---
-        document.addEventListener('paste', (e) => {
-            const items = (e.clipboardData || e.originalEvent.clipboardData).items;
-            for (let index in items) {
-                const item = items[index];
-                if (item.kind === 'file' && item.type.startsWith('image/')) {
-                    const blob = item.getAsFile();
-                    // Criar um DataTransfer pra injetar no input de arquivo
-                    const dataTransfer = new DataTransfer();
-                    dataTransfer.items.add(new File([blob], "print_colado.png", {type: "image/png"}));
-                    dom.fileInput.files = dataTransfer.files;
-                    showToast("Imagem colada! Clique em 'Ler com IA (Gemini)'");
-                }
+        // --- Eventos da Lista e Modal (Expandir/Lupa) ---
+        let isExpanded = false;
+        
+        const toggleExpandModal = () => {
+            isExpanded = !isExpanded;
+            if (isExpanded) {
+                dom.listCard.classList.add('expanded-modal');
+                dom.backdrop.classList.add('show');
+                dom.iconExpand.style.display = 'none';
+                dom.iconCollapse.style.display = 'block';
+                document.body.style.overflow = 'hidden'; // Evita rolagem da página atrás do modal
+            } else {
+                dom.listCard.classList.remove('expanded-modal');
+                dom.backdrop.classList.remove('show');
+                dom.iconExpand.style.display = 'block';
+                dom.iconCollapse.style.display = 'none';
+                document.body.style.overflow = '';
+            }
+        };
+
+        dom.btnToggleExpand.addEventListener('click', toggleExpandModal);
+        dom.backdrop.addEventListener('click', () => { if(isExpanded) toggleExpandModal(); });
+
+        // --- Botão Limpar Tudo ---
+        dom.btnClearAll.addEventListener('click', () => {
+            if (products.length === 0 && dom.pasteArea.value === '') return;
+            
+            if (confirm("Tem certeza que deseja limpar todo o orçamento atual e começar um novo?")) {
+                products = [];
+                nextId = 1;
+                dom.pasteArea.value = '';
+                dom.productName.value = '';
+                dom.productQuantity.value = '1';
+                dom.productPrice.value = '';
+                dom.globalPercent.value = '';
+                updateUI();
+                showToast("Orçamento zerado com sucesso!");
             }
         });
-
-        // --- INTEGRAÇÃO IA (GEMINI) ---
-        dom.btnExtractAI.addEventListener('click', async () => {
-            const file = dom.fileInput.files[0];
-            const textContent = dom.pasteArea.value.trim();
-
-            if (!file && !textContent) {
-                alert("Por favor, selecione uma imagem (print) ou cole um texto no campo acima para a IA analisar.");
-                return;
-            }
-
-            const originalBtnHtml = dom.btnExtractAI.innerHTML;
-            dom.btnExtractAI.disabled = true;
-            dom.btnExtractAI.innerHTML = "⏳ Analisando...";
-
-            try {
-                let parts = [];
-                const prompt = "Você é um assistente comercial. Extraia a lista de itens deste orçamento/nota. Retorne APENAS uma lista (array) em formato JSON. Cada item do JSON deve ter obrigatoriamente as chaves: 'name' (string com a descrição limpa), 'quantity' (number, quantidade do item) e 'price' (number, valor unitário/preço do item ignorando R$ ou espaços). Não adicione nenhum outro texto ou marcação de bloco fora do JSON. Se não houver produtos, retorne [].";
-                parts.push({ text: prompt });
-
-                // Se houver arquivo (imagem), lemos em base64 para envio direto para IA
-                if (file) {
-                    const base64Data = await new Promise((resolve) => {
-                        const reader = new FileReader();
-                        reader.onload = () => resolve(reader.result.split(',')[1]);
-                        reader.readAsDataURL(file);
-                    });
-                    
-                    parts.push({
-                        inlineData: {
-                            mimeType: file.type || "image/png",
-                            data: base64Data
-                        }
-                    });
-                } 
-                // Se houver apenas texto colado
-                else if (textContent) {
-                    parts.push({ text: `\n\nTEXTO DO ORÇAMENTO:\n${textContent}` });
-                }
-
-                // Configuração da requisição API para garantir JSON limpo e estruturado
-                const payload = {
-                    contents: [{ parts: parts }],
-                    generationConfig: {
-                        responseMimeType: "application/json",
-                        responseSchema: {
-                            type: "ARRAY",
-                            items: {
-                                type: "OBJECT",
-                                properties: {
-                                    name: { type: "STRING" },
-                                    quantity: { type: "NUMBER" },
-                                    price: { type: "NUMBER" }
-                                },
-                                required: ["name", "quantity", "price"]
-                            }
-                        }
-                    }
-                };
-
-                const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
-                const response = await fetch(url, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify(payload)
-                });
-
-                if (!response.ok) throw new Error("Erro na comunicação com a API Gemini.");
-
-                const result = await response.json();
-                const aiResponseText = result.candidates[0].content.parts[0].text;
-                
-                const itemsList = JSON.parse(aiResponseText);
-                let itemsAdded = 0;
-
-                itemsList.forEach(item => {
-                    if (item.name && item.price > 0) {
-                        products.push({
-                            id: nextId++,
-                            name: item.name,
-                            quantity: item.quantity || 1,
-                            originalPrice: item.price,
-                            percentApplied: 0,
-                            currentPrice: item.price
-                        });
-                        itemsAdded++;
-                    }
-                });
-
-                if (itemsAdded > 0) {
-                    updateUI();
-                    showToast(`${itemsAdded} produtos extraídos pela IA! ✨`);
-                    dom.fileInput.value = '';
-                    dom.pasteArea.value = '';
-                } else {
-                    alert("A Inteligência Artificial não conseguiu identificar produtos válidos nesta imagem.");
-                }
-
-            } catch (error) {
-                console.error("Erro no Gemini:", error);
-                alert("Ocorreu um erro ao analisar a imagem com a IA.");
-            } finally {
-                dom.btnExtractAI.disabled = false;
-                dom.btnExtractAI.innerHTML = originalBtnHtml;
-            }
-        });
-
 
         // --- Events (Manual / Comum) ---
         dom.btnAddProduct.addEventListener('click', () => {
@@ -900,19 +753,14 @@
             setTimeout(() => dom.toast.classList.remove('show'), 3000);
         };
 
-        // Extract using basic rules (Fallback/Common)
+        // Extract using basic rules
         dom.btnExtractText.addEventListener('click', () => {
-            // Se tiver uma imagem no input, a extração comum não funciona
-            if (dom.fileInput.files.length > 0 && dom.fileInput.files[0].type.startsWith('image/')) {
-                alert("A Extração Comum só funciona para textos colados. Use o botão 'Ler com IA (Gemini)' para imagens e prints!");
-                return;
-            }
-
-            // Se houver texto colado
             const text = dom.pasteArea.value;
             if (text.trim()) {
                 extractDataFromTextBasic(text);
                 dom.pasteArea.value = '';
+            } else {
+                alert("Por favor, cole o texto do orçamento antes de extrair.");
             }
         });
 
@@ -1035,9 +883,9 @@
 
             if (itemsAdded > 0) {
                 updateUI();
-                showToast(`${itemsAdded} produtos extraídos via regra comum.`);
+                showToast(`${itemsAdded} produtos extraídos.`);
             } else {
-                alert("Nenhum padrão encontrado via extração básica. Verifique o texto ou tente a Extração com IA.");
+                alert("Não foi possível identificar itens no texto. Verifique o formato do orçamento colado.");
             }
         };
 
