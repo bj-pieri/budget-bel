@@ -12,6 +12,7 @@
            1. DESIGN SYSTEM (Inspirado no shadcn/ui)
            ========================================= */
         :root {
+            /* Tema Claro Padrão */
             --background: 0 0% 100%;
             --foreground: 240 10% 3.9%;
             --card: 0 0% 100%;
@@ -38,6 +39,7 @@
         }
 
         [data-theme="dark"] {
+            /* Tema Escuro Padrão */
             --background: 240 10% 3.9%;
             --foreground: 0 0% 98%;
             --card: 240 10% 3.9%;
@@ -59,6 +61,56 @@
             --border: 240 3.7% 15.9%;
             --input: 240 3.7% 15.9%;
             --ring: 240 4.9% 83.9%;
+        }
+
+        [data-theme="gruvbox-light"] {
+            /* Tema Gruvbox Light */
+            --background: 48 74% 88%;
+            --foreground: 0 5% 22%;
+            --card: 43 61% 84%;
+            --card-foreground: 0 5% 22%;
+            --popover: 43 61% 84%;
+            --popover-foreground: 0 5% 22%;
+            --primary: 19 97% 35%; 
+            --primary-foreground: 48 74% 88%;
+            --secondary: 40 54% 81%; 
+            --secondary-foreground: 0 5% 22%;
+            --muted: 40 54% 81%;
+            --muted-foreground: 30 11% 44%; 
+            --accent: 40 54% 81%;
+            --accent-foreground: 0 5% 22%;
+            --destructive: 356 100% 31%; 
+            --destructive-foreground: 48 74% 88%;
+            --success: 57 79% 26%; 
+            --success-foreground: 48 74% 88%;
+            --border: 40 38% 73%; 
+            --input: 40 38% 73%;
+            --ring: 19 97% 35%;
+        }
+
+        [data-theme="gruvbox-dark"] {
+            /* Tema Gruvbox Dark */
+            --background: 0 0% 16%; 
+            --foreground: 40 54% 81%; 
+            --card: 0 5% 22%; 
+            --card-foreground: 40 54% 81%;
+            --popover: 0 5% 22%;
+            --popover-foreground: 40 54% 81%;
+            --primary: 24 87% 45%; 
+            --primary-foreground: 0 0% 16%;
+            --secondary: 15 7% 29%; 
+            --secondary-foreground: 40 54% 81%;
+            --muted: 15 7% 29%;
+            --muted-foreground: 35 16% 59%; 
+            --accent: 15 7% 29%;
+            --accent-foreground: 40 54% 81%;
+            --destructive: 4 95% 59%; 
+            --destructive-foreground: 0 0% 16%;
+            --success: 73 66% 44%; 
+            --success-foreground: 0 0% 16%;
+            --border: 30 10% 36%; 
+            --input: 30 10% 36%;
+            --ring: 24 87% 45%;
         }
 
         * {
@@ -229,7 +281,7 @@
                 </button>
 
                 <!-- Toggle de Tema -->
-                <button class="btn btn-icon" id="btnThemeToggle" title="Alternar Tema">
+                <button class="btn btn-icon" id="btnThemeToggle" title="Alternar Tema (Clica para ciclar)">
                     <svg id="icon-sun" class="icon" style="display:none;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>
                     <svg id="icon-moon" class="icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
                 </button>
@@ -380,6 +432,9 @@
          JAVASCRIPT
          ========================================= -->
     <script>
+        // --- Tema (Gerenciamento) ---
+        const themes = ['light', 'dark', 'gruvbox-light', 'gruvbox-dark'];
+
         // --- Estado ---
         let products = [];
         let nextId = 1;
@@ -593,7 +648,7 @@
                 dom.backdrop.classList.add('show');
                 dom.iconExpand.style.display = 'none';
                 dom.iconCollapse.style.display = 'block';
-                document.body.style.overflow = 'hidden'; // Evita rolagem da página atrás do modal
+                document.body.style.overflow = 'hidden'; 
             } else {
                 dom.listCard.classList.remove('expanded-modal');
                 dom.backdrop.classList.remove('show');
@@ -782,9 +837,10 @@
             }
         };
 
-        // --- Theme Management ---
+        // --- Gerenciamento da Transição de Temas ---
         const updateThemeIcons = (theme) => {
-            if (theme === 'dark') {
+            // Icone sol pra todos temas escuros, lua pra temas claros
+            if (theme.includes('dark')) {
                 dom.iconSun.style.display = 'block';
                 dom.iconMoon.style.display = 'none';
             } else {
@@ -802,11 +858,22 @@
         };
 
         dom.themeToggle.addEventListener('click', () => {
-            const currentTheme = document.documentElement.getAttribute('data-theme');
-            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-            document.documentElement.setAttribute('data-theme', newTheme);
-            localStorage.setItem('fintechAppTheme', newTheme);
-            updateThemeIcons(newTheme);
+            const currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
+            const currentIndex = themes.indexOf(currentTheme);
+            const nextTheme = themes[(currentIndex + 1) % themes.length];
+            
+            document.documentElement.setAttribute('data-theme', nextTheme);
+            localStorage.setItem('fintechAppTheme', nextTheme);
+            updateThemeIcons(nextTheme);
+            
+            // Um pequeno feedback visual de qual tema foi carregado
+            const nomesTemas = {
+                'light': 'Claro',
+                'dark': 'Escuro',
+                'gruvbox-light': 'Gruvbox Claro',
+                'gruvbox-dark': 'Gruvbox Escuro'
+            };
+            showToast(`Tema alterado: ${nomesTemas[nextTheme]}`);
         });
 
         // Initialize
