@@ -1,0 +1,755 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Atualizador de Orçamentos | Fintech App</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* =========================================
+           1. DESIGN SYSTEM (Inspirado no shadcn/ui)
+           ========================================= */
+        :root {
+            /* Tema Claro (Zinc base) */
+            --background: 0 0% 100%;
+            --foreground: 240 10% 3.9%;
+            --card: 0 0% 100%;
+            --card-foreground: 240 10% 3.9%;
+            --popover: 0 0% 100%;
+            --popover-foreground: 240 10% 3.9%;
+            --primary: 240 5.9% 10%;
+            --primary-foreground: 0 0% 98%;
+            --secondary: 240 4.8% 95.9%;
+            --secondary-foreground: 240 5.9% 10%;
+            --muted: 240 4.8% 95.9%;
+            --muted-foreground: 240 3.8% 46.1%;
+            --accent: 240 4.8% 95.9%;
+            --accent-foreground: 240 5.9% 10%;
+            --destructive: 0 84.2% 60.2%;
+            --destructive-foreground: 0 0% 98%;
+            --success: 142.1 76.2% 36.3%;
+            --success-foreground: 0 0% 98%;
+            --border: 240 5.9% 90%;
+            --input: 240 5.9% 90%;
+            --ring: 240 5.9% 10%;
+            --radius: 0.5rem;
+            
+            --transition: all 0.2s ease;
+        }
+
+        [data-theme="dark"] {
+            /* Tema Escuro */
+            --background: 240 10% 3.9%;
+            --foreground: 0 0% 98%;
+            --card: 240 10% 3.9%;
+            --card-foreground: 0 0% 98%;
+            --popover: 240 10% 3.9%;
+            --popover-foreground: 0 0% 98%;
+            --primary: 0 0% 98%;
+            --primary-foreground: 240 5.9% 10%;
+            --secondary: 240 3.7% 15.9%;
+            --secondary-foreground: 0 0% 98%;
+            --muted: 240 3.7% 15.9%;
+            --muted-foreground: 240 5% 64.9%;
+            --accent: 240 3.7% 15.9%;
+            --accent-foreground: 0 0% 98%;
+            --destructive: 0 62.8% 30.6%;
+            --destructive-foreground: 0 0% 98%;
+            --success: 142.1 70% 40%;
+            --success-foreground: 0 0% 98%;
+            --border: 240 3.7% 15.9%;
+            --input: 240 3.7% 15.9%;
+            --ring: 240 4.9% 83.9%;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+            /* Garante que os números se alinhem verticalmente perfeitamente em finanças */
+            font-variant-numeric: tabular-nums; 
+        }
+
+        body {
+            background-color: hsl(var(--background));
+            color: hsl(var(--foreground));
+            line-height: 1.5;
+            -webkit-font-smoothing: antialiased;
+            padding-bottom: 3rem;
+            transition: background-color var(--transition), color var(--transition);
+        }
+
+        /* =========================================
+           2. TYPOGRAPHY & LAYOUT
+           ========================================= */
+        .container {
+            max-width: 1024px;
+            margin: 0 auto;
+            padding: 2rem 1.5rem;
+        }
+
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2.5rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 1px solid hsl(var(--border));
+        }
+
+        h1 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            letter-spacing: -0.025em;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        @media (min-width: 768px) {
+            .grid-2 { grid-template-columns: 1fr 1fr; }
+        }
+
+        /* =========================================
+           3. CARDS (Componente principal)
+           ========================================= */
+        .card {
+            background-color: hsl(var(--card));
+            color: hsl(var(--card-foreground));
+            border: 1px solid hsl(var(--border));
+            border-radius: var(--radius);
+            box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .card-header { padding: 1.5rem; padding-bottom: 1rem; }
+        .card-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            letter-spacing: -0.025em;
+            line-height: 1;
+        }
+        .card-description {
+            font-size: 0.875rem;
+            color: hsl(var(--muted-foreground));
+            margin-top: 0.375rem;
+        }
+        .card-content { padding: 1.5rem; padding-top: 0; flex-grow: 1; }
+
+        /* Card Destaque (Totais) */
+        .card-featured {
+            background-color: hsl(var(--primary));
+            color: hsl(var(--primary-foreground));
+        }
+        .card-featured .card-title,
+        .card-featured .card-description {
+            color: hsl(var(--primary-foreground));
+            opacity: 0.9;
+        }
+        
+        /* =========================================
+           4. FORMS & INPUTS
+           ========================================= */
+        .space-y { display: flex; flex-direction: column; gap: 1rem; }
+        .space-y-sm { display: flex; flex-direction: column; gap: 0.5rem; }
+
+        label {
+            font-size: 0.875rem;
+            font-weight: 500;
+            line-height: 1;
+            color: hsl(var(--foreground));
+        }
+
+        .input {
+            display: flex;
+            height: 2.5rem;
+            width: 100%;
+            border-radius: calc(var(--radius) - 2px);
+            border: 1px solid hsl(var(--input));
+            background-color: transparent;
+            padding: 0.5rem 0.75rem;
+            font-size: 0.875rem;
+            transition: border-color var(--transition), box-shadow var(--transition);
+            color: hsl(var(--foreground));
+        }
+        .input::placeholder { color: hsl(var(--muted-foreground)); }
+        
+        .input:focus-visible {
+            outline: none;
+            border-color: hsl(var(--ring));
+            box-shadow: 0 0 0 1px hsl(var(--background)), 0 0 0 3px hsl(var(--ring));
+        }
+        
+        input[type="file"] {
+            padding: 0.4rem 0.75rem;
+            cursor: pointer;
+        }
+        input[type="file"]::file-selector-button {
+            border: 0;
+            background: hsl(var(--secondary));
+            color: hsl(var(--secondary-foreground));
+            padding: 0.2rem 0.6rem;
+            border-radius: 4px;
+            margin-right: 0.8rem;
+            font-size: 0.75rem;
+            font-weight: 500;
+            cursor: pointer;
+        }
+
+        /* =========================================
+           5. BUTTONS
+           ========================================= */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            white-space: nowrap;
+            border-radius: calc(var(--radius) - 2px);
+            font-size: 0.875rem;
+            font-weight: 500;
+            height: 2.5rem;
+            padding: 0.5rem 1rem;
+            border: none;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .btn:focus-visible {
+            outline: none;
+            box-shadow: 0 0 0 1px hsl(var(--background)), 0 0 0 3px hsl(var(--ring));
+        }
+
+        .btn-primary {
+            background-color: hsl(var(--primary));
+            color: hsl(var(--primary-foreground));
+        }
+        .btn-primary:hover { opacity: 0.9; }
+
+        .btn-secondary {
+            background-color: hsl(var(--secondary));
+            color: hsl(var(--secondary-foreground));
+        }
+        .btn-secondary:hover { background-color: hsl(var(--secondary) / 0.8); }
+
+        .btn-outline {
+            background-color: transparent;
+            border: 1px solid hsl(var(--input));
+            color: hsl(var(--foreground));
+        }
+        .btn-outline:hover {
+            background-color: hsl(var(--accent));
+            color: hsl(var(--accent-foreground));
+        }
+
+        .btn-destructive {
+            background-color: hsl(var(--destructive));
+            color: hsl(var(--destructive-foreground));
+        }
+        .btn-destructive:hover { opacity: 0.9; }
+
+        .btn-icon {
+            padding: 0;
+            width: 2.5rem;
+            height: 2.5rem;
+            background: transparent;
+            color: hsl(var(--foreground));
+            border-radius: var(--radius);
+        }
+        .btn-icon:hover {
+            background-color: hsl(var(--accent));
+            color: hsl(var(--accent-foreground));
+        }
+
+        .btn-sm { height: 2rem; padding: 0 0.75rem; font-size: 0.75rem; }
+
+        /* =========================================
+           6. TABLE (Data Grid)
+           ========================================= */
+        .table-container {
+            position: relative;
+            width: 100%;
+            overflow: auto;
+        }
+        table {
+            width: 100%;
+            caption-side: bottom;
+            font-size: 0.875rem;
+            border-collapse: collapse;
+        }
+        th {
+            height: 3rem;
+            padding: 0 1rem;
+            text-align: left;
+            vertical-align: middle;
+            font-weight: 500;
+            color: hsl(var(--muted-foreground));
+            border-bottom: 1px solid hsl(var(--border));
+        }
+        td {
+            padding: 1rem;
+            vertical-align: middle;
+            border-bottom: 1px solid hsl(var(--border));
+        }
+        tr:hover td { background-color: hsl(var(--muted) / 0.5); }
+        tr:last-child td { border-bottom: 0; }
+
+        .price-up { color: hsl(var(--destructive)); font-weight: 600; }
+        .price-down { color: hsl(var(--success)); font-weight: 600; }
+
+        .empty-state {
+            text-align: center;
+            padding: 3rem 1rem;
+            color: hsl(var(--muted-foreground));
+            font-size: 0.875rem;
+        }
+
+        /* =========================================
+           7. COMPONENTES EXTRAS
+           ========================================= */
+        .flex-row { display: flex; gap: 0.5rem; align-items: center; }
+        
+        .output-box {
+            width: 100%;
+            height: 160px;
+            padding: 0.75rem;
+            background-color: transparent;
+            border: 1px solid hsl(var(--input));
+            border-radius: calc(var(--radius) - 2px);
+            color: hsl(var(--foreground));
+            resize: vertical;
+            font-family: 'Inter', monospace;
+            font-size: 0.875rem;
+            line-height: 1.5;
+            transition: border-color var(--transition);
+        }
+        .output-box:focus-visible {
+            outline: none;
+            border-color: hsl(var(--ring));
+            box-shadow: 0 0 0 1px hsl(var(--background)), 0 0 0 3px hsl(var(--ring));
+        }
+
+        .total-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 1rem;
+            padding: 0.5rem 0;
+        }
+        .total-row.highlight {
+            font-size: 1.5rem;
+            font-weight: 700;
+            border-top: 1px solid hsl(var(--border) / 0.2);
+            padding-top: 1rem;
+            margin-top: 0.5rem;
+        }
+
+        /* Toast moderno */
+        .toast {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background-color: hsl(var(--background));
+            color: hsl(var(--foreground));
+            border: 1px solid hsl(var(--border));
+            padding: 1rem 1.5rem;
+            border-radius: var(--radius);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+            transform: translateY(100px);
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            z-index: 50;
+        }
+        .toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+        .toast svg { color: hsl(var(--success)); }
+
+        /* Icon SVG util */
+        .icon { width: 1.1rem; height: 1.1rem; stroke-width: 2; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <!-- Cabeçalho -->
+        <header class="header-top">
+            <h1>
+                <svg class="icon" style="width:1.5rem; height:1.5rem" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"/><path d="M3 5v14a2 2 0 0 0 2 2h16v-5"/><path d="M18 12a2 2 0 0 0 0 4h4v-4Z"/></svg>
+                Orçamentos
+            </h1>
+            <button class="btn btn-icon" id="btnThemeToggle" title="Alternar Tema">
+                <!-- Ícone trocado via JS -->
+                <svg id="icon-sun" class="icon" style="display:none;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>
+                <svg id="icon-moon" class="icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
+            </button>
+        </header>
+
+        <!-- Seção de Entrada de Dados -->
+        <div class="grid-2">
+            <!-- Upload PDF/TXT -->
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">Importar Arquivo</h2>
+                    <p class="card-description">Selecione um arquivo de texto para extrair produtos automaticamente.</p>
+                </div>
+                <div class="card-content space-y">
+                    <div class="space-y-sm">
+                        <label for="fileInput">Arquivo de Origem</label>
+                        <input type="file" id="fileInput" class="input" accept=".pdf, .txt, .csv">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Inserção Manual -->
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">Adicionar Produto</h2>
+                    <p class="card-description">Insira os itens do orçamento manualmente.</p>
+                </div>
+                <div class="card-content space-y">
+                    <div class="space-y-sm">
+                        <label for="productName">Nome do Produto</label>
+                        <input type="text" id="productName" class="input" placeholder="Ex: Cimento Portland 50kg">
+                    </div>
+                    <div class="space-y-sm">
+                        <label for="productPrice">Preço Unitário (R$)</label>
+                        <input type="number" id="productPrice" class="input" placeholder="0.00" step="0.01" min="0">
+                    </div>
+                    <button class="btn btn-secondary" id="btnAddProduct" style="margin-top: 0.5rem;">
+                        <svg class="icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+                        Adicionar à lista
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tabela de Produtos -->
+        <div class="card" style="margin-bottom: 1.5rem;">
+            <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+                <div>
+                    <h2 class="card-title">Lista de Itens</h2>
+                    <p class="card-description">Gerencie as margens de lucro ou descontos individualmente.</p>
+                </div>
+                <!-- Controle Global embutido no header da tabela -->
+                <div class="flex-row">
+                    <input type="number" id="globalPercent" class="input" style="width: 120px; height: 2rem;" placeholder="% Global" step="0.1">
+                    <button class="btn btn-outline btn-sm" id="btnApplyGlobal">Aplicar a todos</button>
+                </div>
+            </div>
+            
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Produto</th>
+                            <th>Preço Original</th>
+                            <th style="width: 140px;">Ajuste (%)</th>
+                            <th>Preço Atualizado</th>
+                            <th style="width: 80px; text-align: right;">Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody">
+                        <!-- Linhas dinâmicas -->
+                    </tbody>
+                </table>
+                <div id="emptyState" class="empty-state">
+                    <svg class="icon" style="width:3rem; height:3rem; margin:0 auto 1rem; color:hsl(var(--muted-foreground)); opacity:0.5;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"/><path d="M3 5v14a2 2 0 0 0 2 2h16v-5"/><path d="M18 12a2 2 0 0 0 0 4h4v-4Z"/><line x1="9" x2="15" y1="12" y2="12"/><line x1="9" x2="15" y1="16" y2="16"/></svg>
+                    Nenhum produto listado no momento.
+                </div>
+            </div>
+        </div>
+
+        <!-- Finalização -->
+        <div class="grid-2">
+            <!-- Painel de Totais (Destaque) -->
+            <div class="card card-featured">
+                <div class="card-header">
+                    <h2 class="card-title">Resumo Financeiro</h2>
+                </div>
+                <div class="card-content" style="display: flex; flex-direction: column; justify-content: center;">
+                    <div class="total-row">
+                        <span>Base de Cálculo</span>
+                        <span id="txtOriginalTotal">R$ 0,00</span>
+                    </div>
+                    <div class="total-row highlight">
+                        <span>Valor Final</span>
+                        <span id="txtUpdatedTotal">R$ 0,00</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Exportação -->
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">Exportar</h2>
+                    <p class="card-description">Pronto para envio via WhatsApp ou E-mail.</p>
+                </div>
+                <div class="card-content space-y">
+                    <textarea id="outputArea" class="output-box" readonly placeholder="Os dados formatados aparecerão aqui..."></textarea>
+                    <button class="btn btn-primary" id="btnCopy">
+                        <svg class="icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
+                        Copiar Relatório
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Component -->
+    <div id="toast" class="toast">
+        <svg class="icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m9 11 3 3L22 4"/></svg>
+        <span>Orçamento copiado para a área de transferência.</span>
+    </div>
+
+    <!-- =========================================
+         JAVASCRIPT
+         ========================================= -->
+    <script>
+        // --- Estado ---
+        let products = [];
+        let nextId = 1;
+
+        // --- DOM Elements ---
+        const dom = {
+            themeToggle: document.getElementById('btnThemeToggle'),
+            iconSun: document.getElementById('icon-sun'),
+            iconMoon: document.getElementById('icon-moon'),
+            fileInput: document.getElementById('fileInput'),
+            productName: document.getElementById('productName'),
+            productPrice: document.getElementById('productPrice'),
+            btnAddProduct: document.getElementById('btnAddProduct'),
+            globalPercent: document.getElementById('globalPercent'),
+            btnApplyGlobal: document.getElementById('btnApplyGlobal'),
+            tableBody: document.getElementById('tableBody'),
+            emptyState: document.getElementById('emptyState'),
+            txtOriginalTotal: document.getElementById('txtOriginalTotal'),
+            txtUpdatedTotal: document.getElementById('txtUpdatedTotal'),
+            outputArea: document.getElementById('outputArea'),
+            btnCopy: document.getElementById('btnCopy'),
+            toast: document.getElementById('toast')
+        };
+
+        // --- Formatters ---
+        const formatCurrency = (value) => {
+            return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
+        };
+        const parseCurrencyToFloat = (str) => {
+            if(!str) return 0;
+            return parseFloat(str.toString().replace(/[^\d,-]/g, '').replace(',', '.'));
+        };
+
+        // --- Business Logic ---
+        const addProduct = (name, price) => {
+            if (!name.trim() || isNaN(price) || price <= 0) return;
+            products.push({
+                id: nextId++,
+                name: name.trim(),
+                originalPrice: parseFloat(price),
+                percentApplied: 0,
+                currentPrice: parseFloat(price)
+            });
+            updateUI();
+        };
+
+        const removeProduct = (id) => {
+            products = products.filter(p => p.id !== id);
+            updateUI();
+        };
+
+        const applyIndividualPercent = (id, percent) => {
+            const product = products.find(p => p.id === id);
+            if (product) {
+                const p = parseFloat(percent) || 0;
+                product.percentApplied = p;
+                product.currentPrice = product.originalPrice * (1 + (p / 100));
+                updateUI();
+            }
+        };
+
+        const applyGlobalPercent = () => {
+            const globalValue = parseFloat(dom.globalPercent.value);
+            if (isNaN(globalValue)) return;
+            products.forEach(p => {
+                p.percentApplied = globalValue;
+                p.currentPrice = p.originalPrice * (1 + (globalValue / 100));
+            });
+            updateUI();
+        };
+
+        // --- UI Updates ---
+        const updateUI = () => {
+            renderTable();
+            updateTotals();
+            generateOutput();
+        };
+
+        const renderTable = () => {
+            dom.tableBody.innerHTML = '';
+            
+            if (products.length === 0) {
+                dom.emptyState.style.display = 'block';
+                return;
+            }
+
+            dom.emptyState.style.display = 'none';
+
+            products.forEach(product => {
+                const tr = document.createElement('tr');
+                let priceClass = '';
+                if(product.currentPrice > product.originalPrice) priceClass = 'price-up';
+                else if (product.currentPrice < product.originalPrice) priceClass = 'price-down';
+
+                tr.innerHTML = `
+                    <td style="font-weight: 500;">${product.name}</td>
+                    <td style="color: hsl(var(--muted-foreground));">${formatCurrency(product.originalPrice)}</td>
+                    <td>
+                        <div class="flex-row">
+                            <input type="number" class="input" style="height:2rem; padding: 0.25rem 0.5rem;" step="0.1" value="${product.percentApplied}" 
+                                   onchange="applyIndividualPercent(${product.id}, this.value)">
+                        </div>
+                    </td>
+                    <td class="${priceClass}">${formatCurrency(product.currentPrice)}</td>
+                    <td style="text-align: right;">
+                        <button class="btn btn-outline btn-sm" style="color: hsl(var(--destructive)); border-color: transparent;" onclick="removeProduct(${product.id})" title="Remover">
+                            <svg class="icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+                        </button>
+                    </td>
+                `;
+                dom.tableBody.appendChild(tr);
+            });
+        };
+
+        const updateTotals = () => {
+            const totalOriginal = products.reduce((acc, curr) => acc + curr.originalPrice, 0);
+            const totalAtualizado = products.reduce((acc, curr) => acc + curr.currentPrice, 0);
+            dom.txtOriginalTotal.textContent = formatCurrency(totalOriginal);
+            dom.txtUpdatedTotal.textContent = formatCurrency(totalAtualizado);
+        };
+
+        const generateOutput = () => {
+            if (products.length === 0) {
+                dom.outputArea.value = '';
+                return;
+            }
+            let text = '📄 *RELATÓRIO DE ORÇAMENTO*\n\n';
+            products.forEach(p => { text += `▪ ${p.name} - ${formatCurrency(p.currentPrice)}\n`; });
+            const total = products.reduce((acc, curr) => acc + curr.currentPrice, 0);
+            text += `\n💰 *Total: ${formatCurrency(total)}*`;
+            dom.outputArea.value = text;
+        };
+
+        // --- Events ---
+        dom.btnAddProduct.addEventListener('click', () => {
+            addProduct(dom.productName.value, dom.productPrice.value);
+            dom.productName.value = '';
+            dom.productPrice.value = '';
+            dom.productName.focus();
+        });
+
+        // Adicionar pelo "Enter" no input de preço
+        dom.productPrice.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') dom.btnAddProduct.click();
+        });
+
+        dom.btnApplyGlobal.addEventListener('click', applyGlobalPercent);
+
+        dom.btnCopy.addEventListener('click', async () => {
+            const text = dom.outputArea.value;
+            if (!text) return;
+            try {
+                await navigator.clipboard.writeText(text);
+                showToast();
+            } catch (err) {
+                dom.outputArea.select();
+                document.execCommand('copy');
+                showToast();
+            }
+        });
+
+        const showToast = () => {
+            dom.toast.classList.add('show');
+            setTimeout(() => dom.toast.classList.remove('show'), 3000);
+        };
+
+        // File Reader
+        dom.fileInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (evt) => extractDataFromText(evt.target.result);
+            reader.readAsText(file);
+        });
+
+        const extractDataFromText = (text) => {
+            const lines = text.split('\n');
+            let foundAny = false;
+            lines.forEach(line => {
+                const regex = /(.*?)(?:R\$)\s*(\d+(?:\.\d{3})*(?:,\d{2}))/i;
+                const match = line.match(regex);
+                if (match) {
+                    const name = match[1].replace(/[^a-zA-Z0-9À-ÿ\s]/g, '').trim();
+                    const price = parseCurrencyToFloat(match[2]);
+                    if (name && price > 0) {
+                        products.push({
+                            id: nextId++, name, originalPrice: price, percentApplied: 0, currentPrice: price
+                        });
+                        foundAny = true;
+                    }
+                }
+            });
+            if(foundAny) updateUI();
+            dom.fileInput.value = '';
+        };
+
+        // --- Theme Management ---
+        const updateThemeIcons = (theme) => {
+            if (theme === 'dark') {
+                dom.iconSun.style.display = 'block';
+                dom.iconMoon.style.display = 'none';
+            } else {
+                dom.iconSun.style.display = 'none';
+                dom.iconMoon.style.display = 'block';
+            }
+        };
+
+        const initTheme = () => {
+            const savedTheme = localStorage.getItem('fintechAppTheme');
+            const systemPrefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+            const theme = savedTheme || (systemPrefersDark ? 'dark' : 'light');
+            document.documentElement.setAttribute('data-theme', theme);
+            updateThemeIcons(theme);
+        };
+
+        dom.themeToggle.addEventListener('click', () => {
+            const currentTheme = document.documentElement.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', newTheme);
+            localStorage.setItem('fintechAppTheme', newTheme);
+            updateThemeIcons(newTheme);
+        });
+
+        // Initialize
+        initTheme();
+        updateUI();
+    </script>
+</body>
+</html>
