@@ -170,7 +170,7 @@
 
         /* Stepper Customizado (Shadcn Style) */
         .stepper-container {
-            display: flex; align-items: center; border: 1px solid hsl(var(--input)); border-radius: calc(var(--radius) - 2px);
+            display: flex; align-items: center; justify-content: center; border: 1px solid hsl(var(--input)); border-radius: calc(var(--radius) - 2px);
             background-color: transparent; height: 2rem; width: 100%; overflow: hidden; transition: border-color var(--transition), box-shadow var(--transition);
         }
         .stepper-container:focus-within { border-color: hsl(var(--ring)); box-shadow: 0 0 0 1px hsl(var(--background)), 0 0 0 3px hsl(var(--ring)); }
@@ -184,9 +184,13 @@
             color: hsl(var(--foreground)); font-size: 0.875rem; font-variant-numeric: tabular-nums; min-width: 0;
         }
 
+        /* Input Dinâmico Colors */
+        input.price-up { color: hsl(var(--destructive)) !important; }
+        input.price-down { color: hsl(var(--success)) !important; }
+
         /* Input com Sufixo (%) Visual */
-        .input-suffix-wrapper { position: relative; display: flex; align-items: center; width: 100%; height: 100%; }
-        .input-suffix-wrapper input { padding-right: 1.5rem; }
+        .input-suffix-wrapper { position: relative; display: flex; align-items: center; width: 100%; height: 100%; justify-content: center; }
+        .input-suffix-wrapper input { padding-right: 1.5rem; text-align: center; }
         .input-suffix-wrapper .suffix { position: absolute; right: 0.5rem; color: hsl(var(--muted-foreground)); font-size: 0.8rem; pointer-events: none; }
 
         /* =========================================
@@ -214,17 +218,17 @@
 
         table { width: 100%; min-width: 900px; table-layout: fixed; border-collapse: collapse; }
         
-        /* Layout Fixo Aprimorado (7 Colunas) */
+        /* Layout Fixo Aprimorado (7 Colunas) - Agora tudo Centralizado */
         th:nth-child(1) { width: 27%; } /* Produto */
         th:nth-child(2) { width: 12%; } /* Qtd */
         th:nth-child(3) { width: 15%; } /* Preço Orig. */
         th:nth-child(4) { width: 15%; } /* Ajuste (%) */
         th:nth-child(5) { width: 13%; } /* Preço Novo */
         th:nth-child(6) { width: 13%; } /* Subtotal */
-        th:nth-child(7) { width:  5%; text-align: right; } /* Ações */
+        th:nth-child(7) { width:  5%; } /* Ações */
 
-        th { height: 3rem; padding: 0 0.5rem; text-align: left; vertical-align: middle; font-weight: 500; color: hsl(var(--muted-foreground)); border-bottom: 1px solid hsl(var(--border)); font-size: 0.875rem; }
-        td { padding: 0.75rem 0.5rem; vertical-align: middle; border-bottom: 1px solid hsl(var(--border)); word-wrap: break-word; }
+        th { height: 3rem; padding: 0 0.5rem; text-align: center; vertical-align: middle; font-weight: 500; color: hsl(var(--muted-foreground)); border-bottom: 1px solid hsl(var(--border)); font-size: 0.875rem; }
+        td { padding: 0.75rem 0.5rem; vertical-align: middle; border-bottom: 1px solid hsl(var(--border)); word-wrap: break-word; text-align: center; }
         tr:hover td { background-color: hsl(var(--muted) / 0.5); }
         tr:last-child td { border-bottom: 0; }
 
@@ -326,7 +330,7 @@
                         </div>
                         <div class="space-y-sm">
                             <label for="productPrice">Preço Unitário (R$)</label>
-                            <input type="number" id="productPrice" class="input" placeholder="0.00" step="0.01" min="0">
+                            <input type="number" id="productPrice" class="input no-spin" placeholder="0.00" step="0.01" min="0">
                         </div>
                     </div>
                     <button class="btn btn-secondary" id="btnAddProduct" style="margin-top: 0.5rem;">
@@ -342,13 +346,13 @@
             <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
                 <div>
                     <h2 class="card-title">Lista de Itens</h2>
-                    <p class="card-description">Compare e ajuste as margens de lucro individualmente.</p>
+                    <p class="card-description">Altere a % de ajuste ou diretamente o Preço Novo.</p>
                 </div>
                 
                 <div class="flex-row">
                     <!-- Controle Global com Máscara de Porcentagem -->
                     <div class="input-suffix-wrapper" style="width: 120px; height: 2rem;">
-                        <input type="number" id="globalPercent" class="input" style="height: 100%; padding-right: 1.5rem;" placeholder="Global" step="0.1">
+                        <input type="number" id="globalPercent" class="input" style="height: 100%; padding-right: 1.5rem; text-align: center;" placeholder="Global" step="0.1">
                         <span class="suffix">%</span>
                     </div>
                     <button class="btn btn-outline btn-sm" id="btnApplyGlobal">Aplicar</button>
@@ -514,6 +518,16 @@
             } else if (field === 'percentApplied') {
                 product.percentApplied = parseFloat(value) || 0;
                 product.currentPrice = product.originalPrice * (1 + (product.percentApplied / 100));
+            } else if (field === 'currentPrice') {
+                const price = parseFloat(value);
+                product.currentPrice = price >= 0 ? price : 0;
+                if (product.originalPrice > 0) {
+                    // Calcula a porcentagem inversa e arredonda para duas casas
+                    const calculatedPercent = ((product.currentPrice / product.originalPrice) - 1) * 100;
+                    product.percentApplied = parseFloat(calculatedPercent.toFixed(2));
+                } else {
+                    product.percentApplied = 0;
+                }
             }
 
             updateUI();
@@ -572,20 +586,20 @@
 
                 tr.innerHTML = `
                     <td>
-                        <input type="text" class="input" style="height:2rem; padding: 0.25rem 0.5rem; width: 100%;" 
+                        <input type="text" class="input" style="height:2rem; padding: 0.25rem 0.5rem; width: 100%; text-align: center;" 
                                value="${product.name}" onchange="updateProductField(${product.id}, 'name', this.value)">
                     </td>
                     <td>
                         <div class="stepper-container">
                             <button class="stepper-btn" onclick="updateQtdStepper(${product.id}, -1)">-</button>
-                            <input type="number" class="stepper-input" value="${product.quantity}" onchange="updateProductField(${product.id}, 'quantity', this.value)">
+                            <input type="number" class="stepper-input no-spin" value="${product.quantity}" onchange="updateProductField(${product.id}, 'quantity', this.value)">
                             <button class="stepper-btn" onclick="updateQtdStepper(${product.id}, 1)">+</button>
                         </div>
                     </td>
                     <td>
-                        <div class="stepper-container" style="padding-left: 0.5rem;">
+                        <div class="stepper-container" style="justify-content: center;">
                             <span style="color: hsl(var(--muted-foreground)); font-size: 0.75rem;">R$</span>
-                            <input type="number" class="stepper-input" style="text-align: right; padding-right: 0.5rem;" 
+                            <input type="number" class="stepper-input no-spin" style="text-align: center; padding-right: 0.5rem;" 
                                    value="${product.originalPrice.toFixed(2)}" step="0.01" min="0"
                                    onchange="updateProductField(${product.id}, 'originalPrice', this.value)">
                         </div>
@@ -594,19 +608,24 @@
                         <div class="stepper-container">
                             <button class="stepper-btn" onclick="updatePercentStepper(${product.id}, -1)">-</button>
                             <div class="input-suffix-wrapper">
-                                <input type="number" class="stepper-input" value="${product.percentApplied}" step="0.1" onchange="updateProductField(${product.id}, 'percentApplied', this.value)">
+                                <input type="number" class="stepper-input no-spin" value="${product.percentApplied}" step="0.1" onchange="updateProductField(${product.id}, 'percentApplied', this.value)">
                                 <span class="suffix" style="right: 2px;">%</span>
                             </div>
                             <button class="stepper-btn" onclick="updatePercentStepper(${product.id}, 1)">+</button>
                         </div>
                     </td>
-                    <td class="${priceClass}" style="font-weight: 500;">
-                        ${formatCurrency(product.currentPrice)}
+                    <td>
+                        <div class="stepper-container" style="justify-content: center;">
+                            <span style="color: hsl(var(--muted-foreground)); font-size: 0.75rem;">R$</span>
+                            <input type="number" class="stepper-input no-spin ${priceClass}" style="text-align: center; padding-right: 0.5rem; font-weight: 600;" 
+                                   value="${product.currentPrice.toFixed(2)}" step="0.01" min="0"
+                                   onchange="updateProductField(${product.id}, 'currentPrice', this.value)">
+                        </div>
                     </td>
-                    <td class="${priceClass}">
+                    <td class="${priceClass}" style="font-weight: 500;">
                         ${formatCurrency(subtotal)}
                     </td>
-                    <td style="text-align: right;">
+                    <td>
                         <button class="btn btn-outline btn-sm" style="color: hsl(var(--destructive)); border-color: transparent; padding:0 0.5rem;" onclick="removeProduct(${product.id})" title="Remover">
                             <svg class="icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
                         </button>
@@ -866,7 +885,6 @@
             localStorage.setItem('fintechAppTheme', nextTheme);
             updateThemeIcons(nextTheme);
             
-            // Um pequeno feedback visual de qual tema foi carregado
             const nomesTemas = {
                 'light': 'Claro',
                 'dark': 'Escuro',
