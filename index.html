@@ -259,6 +259,25 @@
         }
         .btn-destructive:hover { opacity: 0.9; }
 
+        .btn-ai {
+            background: linear-gradient(135deg, #6366f1, #a855f7, #ec4899);
+            color: white;
+            border: none;
+            font-weight: 600;
+            box-shadow: 0 4px 6px -1px rgba(99, 102, 241, 0.2), 0 2px 4px -1px rgba(99, 102, 241, 0.1);
+        }
+        .btn-ai:hover { 
+            opacity: 0.9; 
+            transform: translateY(-1px);
+            box-shadow: 0 6px 8px -1px rgba(99, 102, 241, 0.3), 0 4px 6px -1px rgba(99, 102, 241, 0.2);
+        }
+        .btn-ai:active { transform: translateY(0); }
+        .btn-ai:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+            transform: none;
+        }
+
         .btn-icon {
             padding: 0;
             width: 2.5rem;
@@ -405,20 +424,29 @@
 
         <!-- Seção de Entrada de Dados -->
         <div class="grid-2">
-            <!-- Upload PDF/TXT -->
+            <!-- Upload PDF/TXT & IA -->
             <div class="card">
                 <div class="card-header">
                     <h2 class="card-title">Importar Dados</h2>
-                    <p class="card-description">Selecione um arquivo ou <strong>cole o texto do PDF</strong> abaixo.</p>
+                    <p class="card-description">Selecione o <strong>arquivo PDF</strong> do seu orçamento ou cole o texto.</p>
                 </div>
                 <div class="card-content space-y">
                     <div class="space-y-sm">
+                        <label for="fileInput" style="font-size: 0.75rem; color: hsl(var(--muted-foreground));">Anexar Documento</label>
                         <input type="file" id="fileInput" class="input" accept=".pdf, .txt, .csv">
                     </div>
-                    <div class="space-y-sm" style="position: relative;">
-                        <textarea id="pasteArea" class="input" style="height: 5rem; resize: vertical; padding-bottom: 2.5rem;" placeholder="Ou cole o texto do orçamento aqui..."></textarea>
-                        <button class="btn btn-secondary btn-sm" id="btnExtractText" style="position: absolute; bottom: 0.5rem; right: 0.5rem;">
-                            Extrair Texto
+                    <div class="space-y-sm">
+                        <label for="pasteArea" style="font-size: 0.75rem; color: hsl(var(--muted-foreground));">Ou Colar Texto</label>
+                        <textarea id="pasteArea" class="input" style="height: 4rem; resize: vertical;" placeholder="Cole o conteúdo do orçamento aqui..."></textarea>
+                    </div>
+                    
+                    <div style="display: flex; gap: 0.5rem; margin-top: 0.5rem;">
+                        <button class="btn btn-secondary" id="btnExtractText" style="flex: 1;" title="Tenta extrair por regras básicas">
+                            Extração Comum
+                        </button>
+                        <button class="btn btn-ai" id="btnExtractAI" style="flex: 2;">
+                            <svg class="icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/><path d="M5 3v4"/><path d="M19 17v4"/><path d="M3 5h4"/><path d="M17 19h4"/></svg>
+                            Ler com IA (Gemini)
                         </button>
                     </div>
                 </div>
@@ -529,13 +557,16 @@
     <!-- Toast Component -->
     <div id="toast" class="toast">
         <svg class="icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m9 11 3 3L22 4"/></svg>
-        <span>Orçamento copiado para a área de transferência.</span>
+        <span>Notificação</span>
     </div>
 
     <!-- =========================================
          JAVASCRIPT
          ========================================= -->
     <script>
+        // API do Gemini (Chave injetada nativamente pelo ambiente)
+        const apiKey = "";
+
         // --- Estado ---
         let products = [];
         let nextId = 1;
@@ -548,6 +579,7 @@
             fileInput: document.getElementById('fileInput'),
             pasteArea: document.getElementById('pasteArea'),
             btnExtractText: document.getElementById('btnExtractText'),
+            btnExtractAI: document.getElementById('btnExtractAI'),
             productName: document.getElementById('productName'),
             productQuantity: document.getElementById('productQuantity'),
             productPrice: document.getElementById('productPrice'),
@@ -703,7 +735,114 @@
             dom.outputArea.value = text;
         };
 
-        // --- Events ---
+        // --- INTEGRAÇÃO IA (GEMINI) ---
+        dom.btnExtractAI.addEventListener('click', async () => {
+            const file = dom.fileInput.files[0];
+            const textContent = dom.pasteArea.value.trim();
+
+            if (!file && !textContent) {
+                alert("Por favor, selecione um arquivo PDF/TXT ou cole um texto no campo acima para a IA analisar.");
+                return;
+            }
+
+            const originalBtnHtml = dom.btnExtractAI.innerHTML;
+            dom.btnExtractAI.disabled = true;
+            dom.btnExtractAI.innerHTML = "⏳ Processando...";
+
+            try {
+                let parts = [];
+                const prompt = "Você é um assistente comercial. Extraia a lista de itens deste orçamento/nota. Retorne APENAS uma lista (array) em formato JSON. Cada item do JSON deve ter obrigatoriamente as chaves: 'name' (string com a descrição limpa), 'quantity' (number, quantidade do item) e 'price' (number, valor unitário/preço do item ignorando R$ ou espaços). Não adicione nenhum outro texto ou marcação de bloco fora do JSON. Se não houver produtos, retorne [].";
+                parts.push({ text: prompt });
+
+                // Se houver arquivo, lemos em base64 para envio direto para IA
+                if (file) {
+                    const base64Data = await new Promise((resolve) => {
+                        const reader = new FileReader();
+                        reader.onload = () => resolve(reader.result.split(',')[1]);
+                        reader.readAsDataURL(file);
+                    });
+                    
+                    parts.push({
+                        inlineData: {
+                            mimeType: file.type || "application/pdf",
+                            data: base64Data
+                        }
+                    });
+                } 
+                // Se houver apenas texto colado
+                else if (textContent) {
+                    parts.push({ text: `\n\nTEXTO DO ORÇAMENTO:\n${textContent}` });
+                }
+
+                // Configuração da requisição API para garantir JSON limpo e estruturado
+                const payload = {
+                    contents: [{ parts: parts }],
+                    generationConfig: {
+                        responseMimeType: "application/json",
+                        responseSchema: {
+                            type: "ARRAY",
+                            items: {
+                                type: "OBJECT",
+                                properties: {
+                                    name: { type: "STRING" },
+                                    quantity: { type: "NUMBER" },
+                                    price: { type: "NUMBER" }
+                                },
+                                required: ["name", "quantity", "price"]
+                            }
+                        }
+                    }
+                };
+
+                const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
+                const response = await fetch(url, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) throw new Error("Erro na comunicação com a API Gemini.");
+
+                const result = await response.json();
+                const aiResponseText = result.candidates[0].content.parts[0].text;
+                
+                const itemsList = JSON.parse(aiResponseText);
+                let itemsAdded = 0;
+
+                itemsList.forEach(item => {
+                    if (item.name && item.price > 0) {
+                        products.push({
+                            id: nextId++,
+                            name: item.name,
+                            quantity: item.quantity || 1,
+                            originalPrice: item.price,
+                            percentApplied: 0,
+                            currentPrice: item.price
+                        });
+                        itemsAdded++;
+                    }
+                });
+
+                if (itemsAdded > 0) {
+                    updateUI();
+                    showToast(`${itemsAdded} produtos extraídos pela IA! ✨`);
+                    dom.fileInput.value = '';
+                    dom.pasteArea.value = '';
+                } else {
+                    alert("A Inteligência Artificial não conseguiu identificar produtos válidos neste documento.");
+                }
+
+            } catch (error) {
+                console.error("Erro no Gemini:", error);
+                alert("Ocorreu um erro ao analisar com a IA. Tente usar a extração comum.");
+            } finally {
+                dom.btnExtractAI.disabled = false;
+                dom.btnExtractAI.innerHTML = originalBtnHtml;
+            }
+        });
+
+
+        // --- Events (Manual / Comum) ---
         dom.btnAddProduct.addEventListener('click', () => {
             addProduct(dom.productName.value, dom.productQuantity.value, dom.productPrice.value);
             dom.productName.value = '';
@@ -739,66 +878,53 @@
             setTimeout(() => dom.toast.classList.remove('show'), 3000);
         };
 
-        // File Reader
-        dom.fileInput.addEventListener('change', (e) => {
-            const file = e.target.files[0];
-            if (!file) return;
-            const reader = new FileReader();
-            reader.onload = (evt) => extractDataFromText(evt.target.result);
-            reader.readAsText(file);
-        });
-
-        // Extract from Textarea
+        // Extract using basic rules (Fallback/Common)
         dom.btnExtractText.addEventListener('click', () => {
+            // Se houver arquivo lido localmente ou texto colado
             const text = dom.pasteArea.value;
             if (text.trim()) {
-                extractDataFromText(text);
+                extractDataFromTextBasic(text);
                 dom.pasteArea.value = '';
+            } else if (dom.fileInput.files.length > 0) {
+                const reader = new FileReader();
+                reader.onload = (evt) => extractDataFromTextBasic(evt.target.result);
+                reader.readAsText(dom.fileInput.files[0]);
+                dom.fileInput.value = '';
             }
         });
 
-        const extractDataFromText = (text) => {
+        const extractDataFromTextBasic = (text) => {
             const lines = text.split('\n').map(l => l.trim()).filter(l => l);
             let foundAny = false;
-            
             let pendingName = "";
             let pendingQuantity = 1;
 
             lines.forEach(line => {
-                // Regra 1: Detectar código numérico e nome do produto (Ex: "15754 CONJ. MOV. BASCULANTE...")
                 const nameMatch = line.match(/^(\d{3,})\s+(.+)$/);
                 if (nameMatch) {
                     pendingName = nameMatch[2].trim();
                     return;
                 }
 
-                // Regra 2: Detectar quantidade isolada em uma linha (Ex: "1", "2")
                 if (/^\d+$/.test(line)) {
                     pendingQuantity = parseInt(line, 10);
                     return;
                 }
 
-                // Regra 3: Detectar unidade de medida e preço (Ex: "UN 290,95 290,95")
                 const priceMatch = line.match(/^(UN|PC|KG|MT|CX|PR)\s+(\d+(?:\.\d{3})*(?:,\d{2}))/i);
                 if (priceMatch && pendingName) {
                     const price = parseCurrencyToFloat(priceMatch[2]);
                     if (price > 0) {
                         products.push({
-                            id: nextId++, 
-                            name: pendingName, 
-                            quantity: pendingQuantity, 
-                            originalPrice: price, 
-                            percentApplied: 0, 
-                            currentPrice: price
+                            id: nextId++, name: pendingName, quantity: pendingQuantity, 
+                            originalPrice: price, percentApplied: 0, currentPrice: price
                         });
                         foundAny = true;
-                        pendingName = "";
-                        pendingQuantity = 1;
+                        pendingName = ""; pendingQuantity = 1;
                     }
                     return;
                 }
 
-                // Regra 4: Fallback para formato antigo/genérico (Ex: "Produto R$ 10,00")
                 const oldMatch = line.match(/(.*?)(?:R\$)\s*(\d+(?:\.\d{3})*(?:,\d{2}))/i);
                 if (oldMatch && !pendingName) {
                     const name = oldMatch[1].replace(/[^a-zA-Z0-9À-ÿ\s]/g, '').trim();
@@ -814,11 +940,10 @@
 
             if (foundAny) {
                 updateUI();
-                showToast("Produtos extraídos com sucesso!");
+                showToast("Produtos extraídos via regra comum.");
             } else {
-                alert("Não foi possível identificar produtos neste texto. Verifique o formato.");
+                alert("Nenhum padrão encontrado via extração básica. Tente a Extração com IA.");
             }
-            dom.fileInput.value = '';
         };
 
         // --- Theme Management ---
