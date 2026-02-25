@@ -918,54 +918,126 @@
 
         const extractDataFromTextBasic = (text) => {
             const lines = text.split('\n').map(l => l.trim()).filter(l => l);
-            let foundAny = false;
-            let pendingName = "";
-            let pendingQuantity = 1;
+            const tokens = [];
 
             lines.forEach(line => {
-                const nameMatch = line.match(/^(\d{3,})\s+(.+)$/);
-                if (nameMatch) {
-                    pendingName = nameMatch[2].trim();
+                // Ignorar cabeçalhos e rodapés comuns do sistema
+                if (/^(NÃO É VÁLIDO|ORÇAMENTO|CLIENTE|CÓDIGO|DESCRIÇÃO|TOTAL|DESCONTO|COND\.|ATENÇÃO|TODOS OS|NO ATO|OS VALORES|SEM AVISO|ASSINATURA)/i.test(line)) {
                     return;
                 }
-
+                
+                // Extrair preços (ex: 290,95 ou 1.290,95)
+                const priceRegex = /\b\d{1,3}(?:\.\d{3})*,\d{2}\b/g;
+                const priceMatches = line.match(priceRegex);
+                if (priceMatches) {
+                    priceMatches.forEach(p => tokens.push({ type: 'PRICE', value: p, claimed: false }));
+                    // Se a linha só tinha preços (e espaços), não tem mais nada pra extrair
+                    if (line.replace(priceRegex, '').trim() === '') return;
+                }
+                
+                // Extrair Unidades
+                const unitRegex = /^(UN|PC|KG|MT|CX|PR|M2|M3)$/i;
+                if (unitRegex.test(line)) {
+                    tokens.push({ type: 'UNIT', value: line.toUpperCase(), claimed: false });
+                    return;
+                }
+                
+                // Extrair Números isolados (Quantidades ou Códigos)
                 if (/^\d+$/.test(line)) {
-                    pendingQuantity = parseInt(line, 10);
+                    tokens.push({ type: 'NUMBER', value: parseInt(line, 10), claimed: false });
                     return;
                 }
-
-                const priceMatch = line.match(/^(UN|PC|KG|MT|CX|PR)\s+(\d+(?:\.\d{3})*(?:,\d{2}))/i);
-                if (priceMatch && pendingName) {
-                    const price = parseCurrencyToFloat(priceMatch[2]);
-                    if (price > 0) {
-                        products.push({
-                            id: nextId++, name: pendingName, quantity: pendingQuantity, 
-                            originalPrice: price, percentApplied: 0, currentPrice: price
-                        });
-                        foundAny = true;
-                        pendingName = ""; pendingQuantity = 1;
-                    }
-                    return;
-                }
-
-                const oldMatch = line.match(/(.*?)(?:R\$)\s*(\d+(?:\.\d{3})*(?:,\d{2}))/i);
-                if (oldMatch && !pendingName) {
-                    const name = oldMatch[1].replace(/[^a-zA-Z0-9À-ÿ\s]/g, '').trim();
-                    const price = parseCurrencyToFloat(oldMatch[2]);
-                    if (name && price > 0) {
-                        products.push({
-                            id: nextId++, name, quantity: 1, originalPrice: price, percentApplied: 0, currentPrice: price
-                        });
-                        foundAny = true;
+                
+                // Extrair Nomes (Linhas com texto, maioria maiúscula)
+                let textWithoutPrices = line.replace(priceRegex, '').trim();
+                // Remover códigos soltos do texto caso fiquem na mesma linha
+                textWithoutPrices = textWithoutPrices.replace(/^\d+\s+/, '').trim();
+                
+                if (textWithoutPrices.length > 8 && /[A-Z]/i.test(textWithoutPrices)) {
+                    const uppers = (textWithoutPrices.match(/[A-Z]/g) || []).length;
+                    const lowers = (textWithoutPrices.match(/[a-z]/g) || []).length;
+                    if (uppers >= lowers) {
+                         tokens.push({ type: 'NAME', value: textWithoutPrices, claimed: false });
                     }
                 }
             });
 
-            if (foundAny) {
+            let itemsAdded = 0;
+
+            // Função auxiliar de busca por proximidade no texto embaralhado
+            const findClosest = (currentIndex, type, conditionFn) => {
+                let distance = 1;
+                while (currentIndex - distance >= 0 || currentIndex + distance < tokens.length) {
+                    // Buscar pra frente
+                    if (currentIndex + distance < tokens.length) {
+                        let t = tokens[currentIndex + distance];
+                        if (t.type === type && conditionFn(t)) return t;
+                    }
+                    // Buscar pra trás
+                    if (currentIndex - distance >= 0) {
+                        let t = tokens[currentIndex - distance];
+                        if (t.type === type && conditionFn(t)) return t;
+                    }
+                    distance++;
+                }
+                return null;
+            };
+
+            tokens.forEach((token, index) => {
+                if (token.type === 'UNIT' && !token.claimed) {
+                    token.claimed = true; // Ancorou em uma unidade de produto
+                    
+                    let nameObj = findClosest(index, 'NAME', t => !t.claimed);
+                    let qtyObj = findClosest(index, 'NUMBER', t => !t.claimed && t.value < 1000);
+                    
+                    let price1Obj = findClosest(index, 'PRICE', t => !t.claimed);
+                    let price2Obj = null;
+                    
+                    if (price1Obj) {
+                        price1Obj.claimed = true; // Reserva temporária
+                        let p1Idx = tokens.indexOf(price1Obj);
+                        
+                        // Tenta achar o segundo preço adjacente ao primeiro (geralmente andam em pares)
+                        if (p1Idx + 1 < tokens.length && tokens[p1Idx + 1].type === 'PRICE' && !tokens[p1Idx + 1].claimed) {
+                            price2Obj = tokens[p1Idx + 1];
+                        } else if (p1Idx - 1 >= 0 && tokens[p1Idx - 1].type === 'PRICE' && !tokens[p1Idx - 1].claimed) {
+                            price2Obj = tokens[p1Idx - 1];
+                        } else {
+                            price2Obj = findClosest(index, 'PRICE', t => !t.claimed);
+                        }
+                        if (price2Obj) price2Obj.claimed = true;
+                    }
+                    
+                    if (nameObj && price1Obj) {
+                        nameObj.claimed = true;
+                        if (qtyObj) qtyObj.claimed = true;
+                        
+                        const name = nameObj.value;
+                        const qty = qtyObj ? qtyObj.value : 1;
+                        const p1 = parseCurrencyToFloat(price1Obj.value);
+                        const p2 = price2Obj ? parseCurrencyToFloat(price2Obj.value) : p1;
+                        
+                        // O menor valor entre os dois preços associados é o preço unitário
+                        const unitPrice = Math.min(p1, p2);
+                        
+                        products.push({
+                            id: nextId++,
+                            name: name,
+                            quantity: qty,
+                            originalPrice: unitPrice,
+                            percentApplied: 0,
+                            currentPrice: unitPrice
+                        });
+                        itemsAdded++;
+                    }
+                }
+            });
+
+            if (itemsAdded > 0) {
                 updateUI();
-                showToast("Produtos extraídos via regra comum.");
+                showToast(`${itemsAdded} produtos extraídos via regra comum.`);
             } else {
-                alert("Nenhum padrão encontrado via extração básica. Tente a Extração com IA.");
+                alert("Nenhum padrão encontrado via extração básica. Verifique o texto ou tente a Extração com IA.");
             }
         };
 
