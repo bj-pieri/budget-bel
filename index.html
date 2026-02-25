@@ -149,13 +149,8 @@
 
         /* Card Destaque (Totais) */
         .card-featured {
-            background-color: hsl(var(--primary));
-            color: hsl(var(--primary-foreground));
-        }
-        .card-featured .card-title,
-        .card-featured .card-description {
-            color: hsl(var(--primary-foreground));
-            opacity: 0.9;
+            background-color: hsl(var(--secondary) / 0.3);
+            border: 2px solid hsl(var(--primary) / 0.15);
         }
         
         /* =========================================
@@ -369,7 +364,7 @@
         .total-row.highlight {
             font-size: 1.5rem;
             font-weight: 700;
-            border-top: 1px solid hsl(var(--border) / 0.2);
+            border-top: 1px solid hsl(var(--border));
             padding-top: 1rem;
             margin-top: 0.5rem;
         }
@@ -424,16 +419,16 @@
 
         <!-- Seção de Entrada de Dados -->
         <div class="grid-2">
-            <!-- Upload PDF/TXT & IA -->
+            <!-- Upload Imagem/TXT & IA -->
             <div class="card">
                 <div class="card-header">
                     <h2 class="card-title">Importar Dados</h2>
-                    <p class="card-description">Selecione o <strong>arquivo PDF</strong> do seu orçamento ou cole o texto.</p>
+                    <p class="card-description">Selecione uma <strong>imagem (print)</strong> do seu orçamento, cole a imagem com <kbd>Ctrl+V</kbd> ou cole o texto.</p>
                 </div>
                 <div class="card-content space-y">
                     <div class="space-y-sm">
-                        <label for="fileInput" style="font-size: 0.75rem; color: hsl(var(--muted-foreground));">Anexar Documento</label>
-                        <input type="file" id="fileInput" class="input" accept=".pdf, .txt, .csv">
+                        <label for="fileInput" style="font-size: 0.75rem; color: hsl(var(--muted-foreground));">Anexar Imagem (Print)</label>
+                        <input type="file" id="fileInput" class="input" accept="image/*">
                     </div>
                     <div class="space-y-sm">
                         <label for="pasteArea" style="font-size: 0.75rem; color: hsl(var(--muted-foreground));">Ou Colar Texto</label>
@@ -441,7 +436,7 @@
                     </div>
                     
                     <div style="display: flex; gap: 0.5rem; margin-top: 0.5rem;">
-                        <button class="btn btn-secondary" id="btnExtractText" style="flex: 1;" title="Tenta extrair por regras básicas">
+                        <button class="btn btn-secondary" id="btnExtractText" style="flex: 1;" title="Tenta extrair texto colado por regras básicas">
                             Extração Comum
                         </button>
                         <button class="btn btn-ai" id="btnExtractAI" style="flex: 2;">
@@ -735,26 +730,42 @@
             dom.outputArea.value = text;
         };
 
+        // --- Permitir colar imagem com CTRL+V ---
+        document.addEventListener('paste', (e) => {
+            const items = (e.clipboardData || e.originalEvent.clipboardData).items;
+            for (let index in items) {
+                const item = items[index];
+                if (item.kind === 'file' && item.type.startsWith('image/')) {
+                    const blob = item.getAsFile();
+                    // Criar um DataTransfer pra injetar no input de arquivo
+                    const dataTransfer = new DataTransfer();
+                    dataTransfer.items.add(new File([blob], "print_colado.png", {type: "image/png"}));
+                    dom.fileInput.files = dataTransfer.files;
+                    showToast("Imagem colada! Clique em 'Ler com IA (Gemini)'");
+                }
+            }
+        });
+
         // --- INTEGRAÇÃO IA (GEMINI) ---
         dom.btnExtractAI.addEventListener('click', async () => {
             const file = dom.fileInput.files[0];
             const textContent = dom.pasteArea.value.trim();
 
             if (!file && !textContent) {
-                alert("Por favor, selecione um arquivo PDF/TXT ou cole um texto no campo acima para a IA analisar.");
+                alert("Por favor, selecione uma imagem (print) ou cole um texto no campo acima para a IA analisar.");
                 return;
             }
 
             const originalBtnHtml = dom.btnExtractAI.innerHTML;
             dom.btnExtractAI.disabled = true;
-            dom.btnExtractAI.innerHTML = "⏳ Processando...";
+            dom.btnExtractAI.innerHTML = "⏳ Analisando...";
 
             try {
                 let parts = [];
                 const prompt = "Você é um assistente comercial. Extraia a lista de itens deste orçamento/nota. Retorne APENAS uma lista (array) em formato JSON. Cada item do JSON deve ter obrigatoriamente as chaves: 'name' (string com a descrição limpa), 'quantity' (number, quantidade do item) e 'price' (number, valor unitário/preço do item ignorando R$ ou espaços). Não adicione nenhum outro texto ou marcação de bloco fora do JSON. Se não houver produtos, retorne [].";
                 parts.push({ text: prompt });
 
-                // Se houver arquivo, lemos em base64 para envio direto para IA
+                // Se houver arquivo (imagem), lemos em base64 para envio direto para IA
                 if (file) {
                     const base64Data = await new Promise((resolve) => {
                         const reader = new FileReader();
@@ -764,7 +775,7 @@
                     
                     parts.push({
                         inlineData: {
-                            mimeType: file.type || "application/pdf",
+                            mimeType: file.type || "image/png",
                             data: base64Data
                         }
                     });
@@ -829,12 +840,12 @@
                     dom.fileInput.value = '';
                     dom.pasteArea.value = '';
                 } else {
-                    alert("A Inteligência Artificial não conseguiu identificar produtos válidos neste documento.");
+                    alert("A Inteligência Artificial não conseguiu identificar produtos válidos nesta imagem.");
                 }
 
             } catch (error) {
                 console.error("Erro no Gemini:", error);
-                alert("Ocorreu um erro ao analisar com a IA. Tente usar a extração comum.");
+                alert("Ocorreu um erro ao analisar a imagem com a IA.");
             } finally {
                 dom.btnExtractAI.disabled = false;
                 dom.btnExtractAI.innerHTML = originalBtnHtml;
@@ -880,16 +891,17 @@
 
         // Extract using basic rules (Fallback/Common)
         dom.btnExtractText.addEventListener('click', () => {
-            // Se houver arquivo lido localmente ou texto colado
+            // Se tiver uma imagem no input, a extração comum não funciona
+            if (dom.fileInput.files.length > 0 && dom.fileInput.files[0].type.startsWith('image/')) {
+                alert("A Extração Comum só funciona para textos colados. Use o botão 'Ler com IA (Gemini)' para imagens e prints!");
+                return;
+            }
+
+            // Se houver texto colado
             const text = dom.pasteArea.value;
             if (text.trim()) {
                 extractDataFromTextBasic(text);
                 dom.pasteArea.value = '';
-            } else if (dom.fileInput.files.length > 0) {
-                const reader = new FileReader();
-                reader.onload = (evt) => extractDataFromTextBasic(evt.target.result);
-                reader.readAsText(dom.fileInput.files[0]);
-                dom.fileInput.value = '';
             }
         });
 
